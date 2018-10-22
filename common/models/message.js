@@ -18,9 +18,25 @@ module.exports = function(Message) {
   };
 };
 
-var getBalanceFromMessage = function(message) {
-  var reg = message+''.match(/.bal\D*(\d+(,\d*)*)/i)[1];
-  if(reg !== null ) {
-    return ms[1].replace(',','');
-  } 
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+function getBalanceAndamountFromMessage(message) {
+  var debitOrCredit = '';
+  var debit = new RegExp(/dr|debit/i);
+  var credit = new RegExp(/cr|credit/i);
+  if (debit.test(message)) {
+    debitOrCredit = 'dr';
+  }
+  if (credit.test(message)) {
+    debitOrCredit = 'cr';
+  }
+  var balance = message.match(/.bal\D*(\d+(,\d*)*)/i)[1];
+  var creditOrDebitAmount = message.match(/(?:amt|Amt|debit|credit)\D*\s*(\d+(?:,\d*.?\d*)*)\s*(\w*)/i)[1];
+  if (balance !== null) {
+    balance = balance.replace(',', '');
+  }
+
+  return [balance, creditOrDebitAmount, debitOrCredit];
 }
